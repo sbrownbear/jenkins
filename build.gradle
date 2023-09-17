@@ -1,0 +1,57 @@
+plugins {
+    id 'java-library' // Используем язык Java. Java-library легковестный вариант.
+    id 'io.qameta.allure' version '2.10.0' // Плагин allure
+}
+
+allure {
+    report {
+        version.set("2.19.0")
+    }
+    adapter { // Отвечает за появление папки build/allure-results
+        aspectjWeaver.set(true) // Обработка аннотации @Step
+        frameworks {
+            junit5 { // Название фреймворка
+                adapterVersion.set("2.19.0") // Версия интеграции фреймворка и allure
+            }
+        }
+    }
+}
+
+// Откуда зависимости цепляем, как правило, по дефолту mavenCentral()
+repositories {
+    mavenCentral()
+}
+
+def assertJVersion = "3.23.1",
+    allureVersion = "2.19.0"
+
+// Зависимости, какие библиотеки (фреймворк, тест-ранер) будем использовать. Искать в https://mvnrepository.com/repos/central
+dependencies {
+    testImplementation (
+            "com.codeborne:selenide:6.16.0", // Селенид
+            "io.qameta.allure:allure-selenide:$allureVersion",
+            "org.assertj:assertj-core:$assertJVersion", //
+            "org.junit.jupiter:junit-jupiter:5.9.3", // Junit5
+            "org.slf4j:slf4j-simple:2.0.7") // Простой и понятный синтаксис логов. Больше информации выводит
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform() // Говорим Gradle что будем использовать JUnit5
+}
+
+// Создали новую таску, чтобы запускать тесты из терминала командой gradle simple_test
+task simple_test(type: Test) {
+    useJUnitPlatform {
+        includeTags("simple")
+    }
+}
+
+task smoke_test(type: Test) {
+    useJUnitPlatform {
+        includeTags("smoke")
+    }
+}
